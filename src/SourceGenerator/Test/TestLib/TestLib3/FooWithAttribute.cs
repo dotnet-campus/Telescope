@@ -1,6 +1,6 @@
-﻿using dotnetCampus.Telescope.SourceGeneratorAnalyzers.DemoLib1;
+﻿using dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib1;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.DemoLib3;
+namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib3;
 
 public class FooWithAttribute : F1
 {
