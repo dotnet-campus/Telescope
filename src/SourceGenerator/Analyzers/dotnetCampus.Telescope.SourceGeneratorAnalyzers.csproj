@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\dotnetCampus.Telescope\dotnetCampus.Telescope.csproj" />
+    <ProjectReference Include="..\..\Tradition\dotnetCampus.TelescopeTask\dotnetCampus.TelescopeTask.csproj" />
   </ItemGroup>
 
   <ItemGroup>
