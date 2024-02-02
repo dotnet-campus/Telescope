@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DemoLib2\dotnetCampus.Telescope.SourceGeneratorAnalyzers.DemoLib2.csproj" />
+    <ProjectReference Include="..\..\..\Tradition\dotnetCampus.Telescope\dotnetCampus.Telescope.csproj" />
   </ItemGroup>
+
 </Project>

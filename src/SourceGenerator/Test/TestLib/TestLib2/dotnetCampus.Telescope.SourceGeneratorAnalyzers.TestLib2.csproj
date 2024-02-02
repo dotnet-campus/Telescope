@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DemoLib1\dotnetCampus.Telescope.SourceGeneratorAnalyzers.DemoLib1.csproj" />
+    <ProjectReference Include="..\TestLib1\dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib1.csproj" />
   </ItemGroup>
 </Project>
