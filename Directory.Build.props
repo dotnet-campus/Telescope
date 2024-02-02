@@ -8,9 +8,9 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>Copyright (c) 2018-2023 dotnet-campus</Copyright>
-    <PackageProjectUrl>https://github.com/dotnet-campus/SourceFusion</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/dotnet-campus/SourceFusion.git</RepositoryUrl>
+    <Copyright>Copyright (c) 2018-2024 dotnet-campus</Copyright>
+    <PackageProjectUrl>https://github.com/dotnet-campus/Telescope</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dotnet-campus/Telescope</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>source;dotnet;nuget;msbuild;compile</PackageTags>
   </PropertyGroup>

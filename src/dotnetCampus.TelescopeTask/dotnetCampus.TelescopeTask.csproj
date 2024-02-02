@@ -19,12 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\SourceFusion.Tool\CompileTime\*.cs" Link="CompileTime\%(RecursiveDir)%(FileName)%(Extension)" />
-    <Compile Include="..\SourceFusion.Tool\Core\*.cs" Link="Core\%(RecursiveDir)%(FileName)%(Extension)" />
-    <Compile Include="..\SourceFusion.Tool\Syntax\CompileTypeVisitor.cs" Link="Syntax\%(RecursiveDir)%(FileName)%(Extension)" />
-    <Compile Include="..\SourceFusion.Tool\Syntax\SyntaxTreeCompilingExtensions.cs" Link="Syntax\%(RecursiveDir)%(FileName)%(Extension)" />
-    <Compile Include="..\SourceFusion\CompileTime\*.cs" Link="CompileTime\%(RecursiveDir)%(FileName)%(Extension)" />
-    <Compile Include="..\SourceFusion\ICompilingContext.cs" Link="CompileTime\%(RecursiveDir)%(FileName)%(Extension)" />
     <Compile Include="..\dotnetCampus.Telescope\InternalContracts.cs" Link="Core\%(RecursiveDir)%(FileName)%(Extension)" />
   </ItemGroup>
 
