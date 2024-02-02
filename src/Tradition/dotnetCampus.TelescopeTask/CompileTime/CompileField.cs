@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace dotnetCampus.SourceFusion.CompileTime
+namespace dotnetCampus.TelescopeTask.CompileTime
 {
     internal class CompileField : CompileMember, ICompileField
     {

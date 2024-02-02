@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace dotnetCampus.SourceFusion.Core
+namespace dotnetCampus.TelescopeTask.Core
 {
     public class CompilingException : Exception
     {

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using dotnetCampus.Cli;
 using dotnetCampus.Cli.Standard;
 using dotnetCampus.MSBuildUtils;
-using dotnetCampus.SourceFusion.Cli;
+using dotnetCampus.TelescopeTask.Cli;
 using dotnetCampus.TelescopeTask.Tasks;
 
 namespace dotnetCampus.TelescopeTask

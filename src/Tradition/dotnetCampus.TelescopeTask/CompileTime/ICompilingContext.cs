@@ -1,6 +1,4 @@
-﻿using dotnetCampus.SourceFusion.CompileTime;
-
-namespace dotnetCampus.SourceFusion
+﻿namespace dotnetCampus.TelescopeTask.CompileTime
 {
     /// <summary>
     /// 包含编译期代码执行的上下文。

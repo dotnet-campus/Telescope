@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace dotnetCampus.SourceFusion.CompileTime
+namespace dotnetCampus.TelescopeTask.CompileTime
 {
     /// <summary>
     /// 编译时找到的类型

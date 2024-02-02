@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using dotnetCampus.SourceFusion.CompileTime;
+using dotnetCampus.TelescopeTask.CompileTime;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace dotnetCampus.SourceFusion.Syntax
+namespace dotnetCampus.TelescopeTask.Syntax
 {
     /// <summary>
     ///     访问编译的所有类和属性

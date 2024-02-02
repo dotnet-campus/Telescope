@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using dotnetCampus.SourceFusion.Cli;
-using dotnetCampus.SourceFusion.CompileTime;
+using dotnetCampus.TelescopeTask.Cli;
+using dotnetCampus.TelescopeTask.CompileTime;
 
-namespace dotnetCampus.SourceFusion.Core
+namespace dotnetCampus.TelescopeTask.Core
 {
     internal class ProjectCompilingContext
     {

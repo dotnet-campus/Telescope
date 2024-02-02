@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using dotnetCampus.SourceFusion.Core;
+using dotnetCampus.TelescopeTask.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace dotnetCampus.SourceFusion.Syntax
+namespace dotnetCampus.TelescopeTask.Syntax
 {
     /// <summary>
     /// 包含语法树编译相关的扩展方法。

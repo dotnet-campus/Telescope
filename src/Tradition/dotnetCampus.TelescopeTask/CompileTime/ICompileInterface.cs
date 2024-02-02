@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.SourceFusion.CompileTime
+﻿namespace dotnetCampus.TelescopeTask.CompileTime
 {
     public interface ICompileInterface : ICompileMember
     {

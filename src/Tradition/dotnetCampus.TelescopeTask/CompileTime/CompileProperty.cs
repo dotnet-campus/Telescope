@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace dotnetCampus.SourceFusion.CompileTime
+namespace dotnetCampus.TelescopeTask.CompileTime
 {
     internal class CompileProperty : CompileMember, ICompileProperty
     {

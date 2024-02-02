@@ -9,10 +9,10 @@ using System.Text.RegularExpressions;
 using dotnetCampus.Cli;
 using dotnetCampus.Cli.Standard;
 using dotnetCampus.MSBuildUtils;
-using dotnetCampus.SourceFusion.Cli;
-using dotnetCampus.SourceFusion.CompileTime;
-using dotnetCampus.SourceFusion.Core;
 using dotnetCampus.Telescope;
+using dotnetCampus.TelescopeTask.Cli;
+using dotnetCampus.TelescopeTask.CompileTime;
+using dotnetCampus.TelescopeTask.Core;
 using dotnetCampus.TelescopeTask.Utils;
 
 using Walterlv.IO.PackageManagement;

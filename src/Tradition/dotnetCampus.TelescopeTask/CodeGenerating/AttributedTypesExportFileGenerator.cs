@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using dotnetCampus.SourceFusion.CompileTime;
+using dotnetCampus.TelescopeTask.CompileTime;
 
 namespace dotnetCampus.TelescopeTask.CodeGenerating
 {

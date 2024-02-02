@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using dotnetCampus.SourceFusion.Core;
+using dotnetCampus.TelescopeTask.Core;
 
-namespace dotnetCampus.SourceFusion.CompileTime
+namespace dotnetCampus.TelescopeTask.CompileTime
 {
     /// <summary>
     /// 编译时找到的程序集

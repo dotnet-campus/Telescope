@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace dotnetCampus.SourceFusion.CompileTime
+namespace dotnetCampus.TelescopeTask.CompileTime
 {
     /// <summary>
     /// 编译找到的对象，可以是类型、属性

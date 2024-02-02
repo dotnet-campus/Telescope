@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using dotnetCampus.SourceFusion.CompileTime;
+using dotnetCampus.TelescopeTask.CompileTime;
 
-namespace dotnetCampus.SourceFusion.Core
+namespace dotnetCampus.TelescopeTask.Core
 {
     /// <summary>
-    /// <see cref="T:SourceFusion.ICompilingContext" /> 的基础实现，包含编译期代码执行的上下文。
+    /// <see cref="T:dotnetCampus.TelescopeTask.CompileTime.ICompilingContext" /> 的基础实现，包含编译期代码执行的上下文。
     /// </summary>
     internal class CompilingContext : ICompilingContext
     {

@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using dotnetCampus.SourceFusion.Core;
-using dotnetCampus.SourceFusion.Syntax;
+using dotnetCampus.TelescopeTask.Core;
+using dotnetCampus.TelescopeTask.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace dotnetCampus.SourceFusion.CompileTime
+namespace dotnetCampus.TelescopeTask.CompileTime
 {
     /// <summary>
     /// 包含 Compile 类型文件的编译期信息。
