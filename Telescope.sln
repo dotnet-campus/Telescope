@@ -43,7 +43,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{426FE9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.Telescope.Sample", "src\Tradition\dotnetCampus.Telescope.Sample\dotnetCampus.Telescope.Sample.csproj", "{2E50E42A-C340-44C8-974D-DC27F5F573EE}"
 	ProjectSection(ProjectDependencies) = postProject
-		{4CB86802-4CAB-4CB8-9D8E-8E9EA90BD96F} = {4CB86802-4CAB-4CB8-9D8E-8E9EA90BD96F}
+		{1B365205-D7EE-4DE7-AE8B-B67D1D5369BA} = {1B365205-D7EE-4DE7-AE8B-B67D1D5369BA}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.TelescopeTask", "src\Tradition\dotnetCampus.TelescopeTask\dotnetCampus.TelescopeTask.csproj", "{0FC4DFBD-C8F0-4F09-AF19-4A5CCE61B6DF}"
