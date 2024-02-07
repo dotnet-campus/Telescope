@@ -2,6 +2,6 @@
 
 namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib3;
 
-public class FooWithAttribute : F1
+public class FooWithoutAttribute : F1
 {
 }
