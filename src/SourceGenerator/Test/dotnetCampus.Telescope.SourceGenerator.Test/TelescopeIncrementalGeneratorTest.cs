@@ -21,7 +21,7 @@ public class TelescopeIncrementalGeneratorTest
     [TestMethod]
     public void TestCollectionAssembly()
     {
-        var compilation = CreateCompilation(TestCodeProvider.GetTestCode());
+        var compilation = TestCodeProvider.CreateCompilation();
 
         compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(@"
 using dotnetCampus.Telescope;
@@ -56,22 +56,5 @@ using dotnetCampus.Telescope.SourceGenerator.Test.Assets;
         Assert.AreEqual(true, codeText.Contains("global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.FooAttribute"));
         Assert.AreEqual(true, codeText.Contains("typeof(global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Foo)"));
         Assert.AreEqual(true, codeText.Contains("new global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Foo()"));
-    }
-
-    private static CSharpCompilation CreateCompilation(string source)
-    {
-        return CSharpCompilation.Create("compilation",
-            new[] { CSharpSyntaxTree.ParseText(source) },
-            new[]
-            {
-                MetadataReference.CreateFromFile(typeof(MarkExportAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib1.F1)
-                    .Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib2.F2)
-                    .Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib3.F3)
-                    .Assembly.Location),
-            }.Concat(MetadataReferenceProvider.GetDotNetMetadataReferenceList()),
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication));
     }
 }
