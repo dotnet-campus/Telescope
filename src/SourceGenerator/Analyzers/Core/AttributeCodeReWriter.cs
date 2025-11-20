@@ -42,8 +42,6 @@ static class AttributeCodeReWriter
 
         static string TypedConstantToCodeString(TypedConstant typedConstant)
         {
-            var constructorArgumentValue = typedConstant.Value;
-
             string constructorArgumentCode;
             switch (typedConstant.Kind)
             {
@@ -56,7 +54,7 @@ static class AttributeCodeReWriter
                 }
                 case TypedConstantKind.Type:
                 {
-                    var typeSymbol = (ITypeSymbol?)constructorArgumentValue;
+                    var typeSymbol = (ITypeSymbol?)typedConstant.Value;
                     if (typeSymbol is null)
                     {
                         constructorArgumentCode = "null";
@@ -87,6 +85,12 @@ static class AttributeCodeReWriter
                         constructorArgumentCode = typedConstant.Value?.ToString() ?? "null";
                     }
 
+                    break;
+                }
+                case TypedConstantKind.Array:
+                {
+                    var arrayElements = typedConstant.Values;
+                    constructorArgumentCode = $"[ {string.Join(", ", arrayElements.Select(TypedConstantToCodeString))} ]";
                     break;
                 }
                 default:
