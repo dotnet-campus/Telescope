@@ -19,8 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub Actions", "GitHub Ac
 		.github\workflows\nuget-tag-publish.yml = .github\workflows\nuget-tag-publish.yml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A585D7EF-916E-45B1-AFB8-025DE9FD1647}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.Telescope", "src\DotNetCampus.Telescope\DotNetCampus.Telescope.csproj", "{B413FC30-BC74-4F22-B046-B7B3897CBE1E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.Telescope.Analyzer", "src\DotNetCampus.Telescope.Analyzer\DotNetCampus.Telescope.Analyzer.csproj", "{553D3A04-7E8B-451F-BBF8-4D3514FEE61B}"
@@ -80,8 +78,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{B413FC30-BC74-4F22-B046-B7B3897CBE1E} = {A585D7EF-916E-45B1-AFB8-025DE9FD1647}
-		{553D3A04-7E8B-451F-BBF8-4D3514FEE61B} = {A585D7EF-916E-45B1-AFB8-025DE9FD1647}
 		{2E50E42A-C340-44C8-974D-DC27F5F573EE} = {426FE9AC-500C-4D2C-A241-07F46C7CC001}
 		{DD824E2D-FB4D-4DCE-BA1D-683EEC232EA5} = {6B28CFC0-1E89-4EF4-9C10-FC293DC8247B}
 		{2C7490F6-B12E-4FC9-B925-8F7E4E4596F9} = {6B28CFC0-1E89-4EF4-9C10-FC293DC8247B}
