@@ -1,12 +1,16 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
+using System.Text;
 
-using DotNetCampus.Telescope.Analyzer.Core;
+using DotNetCampus.Telescope.Generators.CodeTransforming;
+using DotNetCampus.Telescope.Generators.Models;
+using DotNetCampus.Telescope.Utils.CodeAnalysis;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
-namespace DotNetCampus.Telescope.Analyzer;
+namespace DotNetCampus.Telescope.Generators;
 
 /// <summary>
 /// 响应程序集级 <c>[assembly: MarkExport(typeof(TBase), typeof(TAttribute))]</c> 特性并生成 <c>__AttributedTypesExport__</c> 的增量源生成器。
@@ -47,7 +51,7 @@ public class TelescopeIncrementalGenerator : IIncrementalGenerator
                 return builder.ToImmutable();
             });
 
-        // 遍历当前程序集中的所有非抽象 class 定义，收集带有特性的候选类型。
+        // 遍历当前程序集中的所有非抽象非静态 class 定义，收集带有特性的候选类型。
         var assemblyClassIncrementalValuesProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
                 static (syntaxNode, _) => syntaxNode.IsKind(SyntaxKind.ClassDeclaration),
@@ -82,7 +86,7 @@ public class TelescopeIncrementalGenerator : IIncrementalGenerator
         // 生成 __AttributedTypesExport__ 代码。
         IncrementalValueProvider<string> generatedCodeProvider = collectionClass.Select(static (markClassCollection, token) =>
         {
-            var attributedTypesExportGenerator = new ExportedTypesCodeTextGenerator();
+            var attributedTypesExportGenerator = new ExportedTypesCodeGenerator();
             return attributedTypesExportGenerator.Generate(markClassCollection, token);
         });
 
@@ -91,7 +95,9 @@ public class TelescopeIncrementalGenerator : IIncrementalGenerator
             {
                 if (!string.IsNullOrEmpty(generatedCode))
                 {
-                    sourceProductionContext.AddSource($"{InternalContracts.AttributedTypesExportClassName}.g.cs", generatedCode);
+                    sourceProductionContext.AddSource(
+                        $"{InternalContracts.AttributedTypesExportClassName}.g.cs",
+                        SourceText.From(generatedCode, Encoding.UTF8));
                 }
             });
     }
@@ -128,7 +134,7 @@ public class TelescopeIncrementalGenerator : IIncrementalGenerator
         }
 
         var requiredBaseClassOrInterfaceType = markExportAttributeParseResult.BaseClassOrInterfaceTypeInfo;
-        if (TypeSymbolHelper.IsInherit(classParseResult.ExportedTypeSymbol, requiredBaseClassOrInterfaceType))
+        if (classParseResult.ExportedTypeSymbol.IsInheritFrom(requiredBaseClassOrInterfaceType))
         {
             return new MarkClassParseResult(
                 classParseResult.ExportedTypeSymbol,

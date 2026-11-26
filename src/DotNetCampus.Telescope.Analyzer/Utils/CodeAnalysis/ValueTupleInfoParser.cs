@@ -1,9 +1,11 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+
+using DotNetCampus.Telescope.Generators.Models;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.Telescope.Analyzer.Core;
+namespace DotNetCampus.Telescope.Utils.CodeAnalysis;
 
 internal static class ValueTupleInfoParser
 {

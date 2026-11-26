@@ -1,13 +1,17 @@
-﻿using Microsoft.CodeAnalysis;
+using DotNetCampus.Telescope.Generators.Builders;
+using DotNetCampus.Telescope.Generators.Models;
 
-namespace DotNetCampus.Telescope.Analyzer;
+using Microsoft.CodeAnalysis;
+
+namespace DotNetCampus.Telescope.Generators.CodeTransforming;
 
 /// <summary>
 /// 导出方法的生成器。
 /// </summary>
 internal interface IExportMethodCodeGenerator
 {
-    string GenerateSourceCode(
+    void BuildMethod(
+        TypeDeclarationSourceTextBuilder typeBuilder,
         ExportMethodReturnTypeCollectionResult exportMethodReturnTypeCollectionResult,
         List<INamedTypeSymbol> list,
         CancellationToken token);

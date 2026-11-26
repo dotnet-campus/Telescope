@@ -1,6 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
-namespace DotNetCampus.Telescope.Analyzer.Core;
+namespace DotNetCampus.Telescope.Generators.Models;
 
 /// <summary>
 /// 表示 ValueTuple 的每一项的定义内容。

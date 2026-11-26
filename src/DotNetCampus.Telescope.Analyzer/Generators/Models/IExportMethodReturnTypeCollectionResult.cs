@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Telescope.Analyzer;
+namespace DotNetCampus.Telescope.Generators.Models;
 
 /// <summary>
 /// 收集导出方法返回值类型。

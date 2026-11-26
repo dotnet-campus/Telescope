@@ -1,19 +1,19 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
-namespace DotNetCampus.Telescope.Analyzer.Core;
+namespace DotNetCampus.Telescope.Utils.CodeAnalysis;
 
-internal static class TypeSymbolHelper
+internal static class TypeSymbolExtensions
 {
-    private static readonly SymbolDisplayFormat FullNameDisplayFormat = new(
+    private static readonly SymbolDisplayFormat FullNameWithoutGenericArgsDisplayFormat = new(
         SymbolDisplayGlobalNamespaceStyle.Included,
         SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
     /// <summary>
-    /// 输出类型的完全限定名。
+    /// 输出不包含泛型实参的类型完全限定名（带 <c>global::</c> 前缀）。
     /// </summary>
-    public static string TypeSymbolToFullName(ITypeSymbol typeSymbol)
+    public static string ToGlobalNameWithoutGenerics(this ITypeSymbol typeSymbol)
     {
-        return typeSymbol.ToDisplayString(FullNameDisplayFormat);
+        return typeSymbol.ToDisplayString(FullNameWithoutGenericArgsDisplayFormat);
     }
 
     /// <summary>
@@ -21,7 +21,7 @@ internal static class TypeSymbolHelper
     /// </summary>
     /// <param name="currentType">当前的类型。</param>
     /// <param name="requiredType">需要继承的类型。</param>
-    public static bool IsInherit(ITypeSymbol currentType, ITypeSymbol requiredType)
+    public static bool IsInheritFrom(this ITypeSymbol currentType, ITypeSymbol requiredType)
     {
         var baseType = currentType.BaseType;
         while (baseType is not null)

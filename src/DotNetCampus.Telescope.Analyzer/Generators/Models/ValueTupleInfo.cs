@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Telescope.Analyzer.Core;
+namespace DotNetCampus.Telescope.Generators.Models;
 
 /// <summary>
 /// 表示 ValueTuple 的信息。

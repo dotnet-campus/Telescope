@@ -1,13 +1,17 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 using static DotNetCampus.Telescope.Properties.Resources;
 using static Microsoft.CodeAnalysis.WellKnownDiagnosticTags;
 
-namespace DotNetCampus.Telescope.Analyzer.Diagnostics;
+// ReSharper disable InconsistentNaming
 
-internal static class TesDiagnostics
+namespace DotNetCampus.Telescope;
+
+/// <summary>
+/// 包含 Telescope 分析器与源生成器中的所有诊断定义。
+/// </summary>
+public static class Diagnostics
 {
-    // ReSharper disable InconsistentNaming
     public static DiagnosticDescriptor Tes000_UnknownError { get; } = new(
         nameof(Tes000),
         Localize(nameof(Tes000)),

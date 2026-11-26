@@ -1,9 +1,9 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.Telescope.Analyzer;
+namespace DotNetCampus.Telescope.Generators.Models;
 
 /// <summary>
 /// 程序集里可能被标记导出的类型。

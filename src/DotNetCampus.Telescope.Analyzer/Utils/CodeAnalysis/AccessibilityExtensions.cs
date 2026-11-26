@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
-namespace DotNetCampus.Telescope.Analyzer.Core;
+namespace DotNetCampus.Telescope.Utils.CodeAnalysis;
 
-internal static class AccessibilityHelper
+internal static class AccessibilityExtensions
 {
     public static string ToCSharpCode(this Accessibility accessibility)
         => accessibility switch

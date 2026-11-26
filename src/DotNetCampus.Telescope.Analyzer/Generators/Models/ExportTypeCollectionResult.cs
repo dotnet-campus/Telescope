@@ -1,6 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
-namespace DotNetCampus.Telescope.Analyzer;
+namespace DotNetCampus.Telescope.Generators.Models;
 
 internal class ExportTypeCollectionResult(IMethodSymbol methodSymbol, SyntaxNode targetSyntaxNode) : IEquatable<ExportTypeCollectionResult>
 {

@@ -1,13 +1,17 @@
-﻿using Microsoft.CodeAnalysis;
+using DotNetCampus.Telescope.Generators.Builders;
+using DotNetCampus.Telescope.Generators.Models;
 
-namespace DotNetCampus.Telescope.Analyzer;
+using Microsoft.CodeAnalysis;
+
+namespace DotNetCampus.Telescope.Generators.CodeTransforming;
 
 /// <summary>
-/// 生成导出类型方法的代码。
+/// 生成导出类型方法的代码分发工厂。
 /// </summary>
 internal static class ExportMethodCodeGenerator
 {
-    public static string GenerateSourceCode(
+    public static void BuildMethod(
+        TypeDeclarationSourceTextBuilder typeBuilder,
         ExportMethodReturnTypeCollectionResult exportMethodReturnTypeCollectionResult,
         List<INamedTypeSymbol> list,
         CancellationToken token)
@@ -15,10 +19,10 @@ internal static class ExportMethodCodeGenerator
         IExportMethodCodeGenerator codeGenerator = exportMethodReturnTypeCollectionResult.ExportMethodReturnType switch
         {
             ExportMethodReturnType.EnumerableValueTupleWithTypeAttributeCreator =>
-                new EnumerableValueTupleExportMethodReturnTypeCodeGenerator(),
+                new EnumerableValueTupleExportMethodCodeGenerator(),
             _ => throw new NotSupportedException(),
         };
 
-        return codeGenerator.GenerateSourceCode(exportMethodReturnTypeCollectionResult, list, token);
+        codeGenerator.BuildMethod(typeBuilder, exportMethodReturnTypeCollectionResult, list, token);
     }
 }

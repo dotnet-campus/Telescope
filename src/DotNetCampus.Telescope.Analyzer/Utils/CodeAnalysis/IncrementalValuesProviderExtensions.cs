@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
-namespace DotNetCampus.Telescope.Analyzer.Core;
+namespace DotNetCampus.Telescope.Utils.CodeAnalysis;
 
-internal static class IncrementalValuesProviderHelper
+internal static class IncrementalValuesProviderExtensions
 {
     /// <summary>
     /// 过滤掉空的值。

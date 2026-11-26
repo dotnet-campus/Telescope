@@ -1,16 +1,16 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
-namespace DotNetCampus.Telescope.Analyzer.Core;
+namespace DotNetCampus.Telescope.Utils.CodeAnalysis;
 
-internal static class AssemblySymbolHelper
+internal static class AssemblySymbolExtensions
 {
     /// <summary>
-    /// 获取当前程序集里面的所有类型（含嵌套类型）。
+    /// 获取当前程序集里面的所有类型。
     /// </summary>
-    public static IEnumerable<INamedTypeSymbol> GetAllTypeSymbols(IAssemblySymbol assemblySymbol) =>
+    public static IEnumerable<INamedTypeSymbol> GetAllTypeSymbols(this IAssemblySymbol assemblySymbol) =>
         GetAllTypeSymbols(assemblySymbol.GlobalNamespace);
 
-    public static IEnumerable<INamedTypeSymbol> GetAllTypeSymbols(INamespaceSymbol namespaceSymbol)
+    public static IEnumerable<INamedTypeSymbol> GetAllTypeSymbols(this INamespaceSymbol namespaceSymbol)
     {
         foreach (var typeSymbol in namespaceSymbol.GetTypeMembers())
         {
@@ -26,14 +26,14 @@ internal static class AssemblySymbolHelper
         }
     }
 
-    public static bool IsReference(IAssemblySymbol currentAssemblySymbol, IAssemblySymbol requiredAssemblySymbol)
+    public static bool IsReference(this IAssemblySymbol currentAssemblySymbol, IAssemblySymbol requiredAssemblySymbol)
     {
         var visited = new Dictionary<IAssemblySymbol, bool>(SymbolEqualityComparer.Default);
         return IsReference(currentAssemblySymbol, requiredAssemblySymbol, visited);
     }
 
     public static bool IsReference(
-        IAssemblySymbol currentAssemblySymbol,
+        this IAssemblySymbol currentAssemblySymbol,
         IAssemblySymbol requiredAssemblySymbol,
         Dictionary<IAssemblySymbol, bool> visited)
     {

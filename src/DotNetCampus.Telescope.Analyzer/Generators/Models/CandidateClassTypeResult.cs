@@ -1,6 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
-namespace DotNetCampus.Telescope.Analyzer;
+namespace DotNetCampus.Telescope.Generators.Models;
 
 /// <summary>
 /// 候选的导出类型结果。

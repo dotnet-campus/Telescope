@@ -1,4 +1,4 @@
-﻿using DotNetCampus.Telescope.Analyzer;
+﻿using DotNetCampus.Telescope.Generators;
 using DotNetCampus.Telescope.Tests.Utils;
 
 using Microsoft.CodeAnalysis;

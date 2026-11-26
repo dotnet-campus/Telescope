@@ -1,8 +1,8 @@
-﻿using DotNetCampus.Telescope.Analyzer.Core;
+using DotNetCampus.Telescope.Utils.CodeAnalysis;
 
 using Microsoft.CodeAnalysis;
 
-namespace DotNetCampus.Telescope.Analyzer;
+namespace DotNetCampus.Telescope.Generators.Models;
 
 /// <summary>
 /// 导出的方法的导出类型返回值结果。
@@ -48,7 +48,7 @@ internal class ExportMethodReturnTypeCollectionResult(
             return false;
         }
 
-        if (!TypeSymbolHelper.IsInherit(assemblyClassTypeSymbol, ExpectedClassBaseType))
+        if (!assemblyClassTypeSymbol.IsInheritFrom(ExpectedClassBaseType))
         {
             return false;
         }

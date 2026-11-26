@@ -1,7 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+using DotNetCampus.Telescope.Utils.CodeAnalysis;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace DotNetCampus.Telescope.Analyzer.Core;
+namespace DotNetCampus.Telescope.Generators.CodeTransforming;
 
 internal static class AttributeCodeReWriter
 {
@@ -22,7 +24,7 @@ internal static class AttributeCodeReWriter
             namedArgumentCodeList.Add((keyValuePair.Key, TypedConstantToCodeString(keyValuePair.Value)));
         }
 
-        var attributeFullName = TypeSymbolHelper.TypeSymbolToFullName(attributeData.AttributeClass!);
+        var attributeFullName = attributeData.AttributeClass!.ToGlobalNameWithoutGenerics();
         var constructorArgs = string.Join(", ", constructorArgumentCodeList);
 
         if (namedArgumentCodeList.Count == 0)
@@ -30,13 +32,8 @@ internal static class AttributeCodeReWriter
             return $"new {attributeFullName}({constructorArgs})";
         }
 
-        var namedArgs = string.Join(",\n    ", namedArgumentCodeList.Select(static x => $"{x.PropertyName} = {x.ValueCode}"));
-        return $$"""
-            new {{attributeFullName}}({{constructorArgs}})
-            {
-                {{namedArgs}}
-            }
-            """;
+        var namedArgs = string.Join(", ", namedArgumentCodeList.Select(static x => $"{x.PropertyName} = {x.ValueCode}"));
+        return $"new {attributeFullName}({constructorArgs}) {{ {namedArgs} }}";
 
         static string TypedConstantToCodeString(TypedConstant typedConstant)
         {
@@ -49,7 +46,7 @@ internal static class AttributeCodeReWriter
             {
                 case TypedConstantKind.Enum:
                 {
-                    var enumTypeName = TypeSymbolHelper.TypeSymbolToFullName(typedConstant.Type!);
+                    var enumTypeName = typedConstant.Type!.ToGlobalNameWithoutGenerics();
                     var valueText = typedConstant.Value?.ToString() ?? "0";
                     return valueText.StartsWith("-", StringComparison.Ordinal)
                         ? $"({enumTypeName})({valueText})"
@@ -58,7 +55,7 @@ internal static class AttributeCodeReWriter
                 case TypedConstantKind.Type:
                 {
                     return typedConstant.Value is ITypeSymbol typeSymbol
-                        ? $"typeof({TypeSymbolHelper.TypeSymbolToFullName(typeSymbol)})"
+                        ? $"typeof({typeSymbol.ToGlobalNameWithoutGenerics()})"
                         : "null";
                 }
                 case TypedConstantKind.Primitive:
@@ -72,7 +69,7 @@ internal static class AttributeCodeReWriter
                     var elements = string.Join(", ", typedConstant.Values.Select(TypedConstantToCodeString));
                     if (typedConstant.Type is IArrayTypeSymbol arrayTypeSymbol)
                     {
-                        var elementTypeName = arrayTypeSymbol.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        var elementTypeName = arrayTypeSymbol.ElementType.ToNotNullGlobalDisplayString();
                         return $"new {elementTypeName}[] {{ {elements} }}";
                     }
 

@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Telescope.Analyzer;
+namespace DotNetCampus.Telescope.Generators.Models;
 
 /// <summary>
 /// 候选收集的结果。

@@ -1,15 +1,18 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
+using System.Text;
 
-using DotNetCampus.Telescope.Analyzer.Core;
-using DotNetCampus.Telescope.Analyzer.Diagnostics;
+using DotNetCampus.Telescope.Generators.CodeTransforming;
+using DotNetCampus.Telescope.Generators.Models;
+using DotNetCampus.Telescope.Utils.CodeAnalysis;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using static DotNetCampus.Telescope.Properties.Resources;
 
-namespace DotNetCampus.Telescope.Analyzer;
+namespace DotNetCampus.Telescope.Generators;
 
 /// <summary>
 /// 从标记了 <c>[TelescopeExport]</c> 的分部方法导出类型的增量源生成器。
@@ -61,7 +64,7 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
             if (methodSymbolReturnType is INamedTypeSymbol namedTypeSymbol)
             {
                 if (namedTypeSymbol.IsGenericType
-                    && TypeSymbolHelper.TypeSymbolToFullName(namedTypeSymbol) == "global::System.Collections.Generic.IEnumerable")
+                    && namedTypeSymbol.ToGlobalNameWithoutGenerics() == "global::System.Collections.Generic.IEnumerable")
                 {
                     // 要求符合以下定义之一：
                     // static partial IEnumerable<(Type, FooAttribute xx, Func<Base> xxx)> ExportFooEnumerable()
@@ -73,7 +76,7 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
                     {
                         if (tupleType.TupleElements.Length == 3)
                         {
-                            if (TypeSymbolHelper.TypeSymbolToFullName(tupleType.TupleElements[0].Type) != "global::System.Type")
+                            if (tupleType.TupleElements[0].Type.ToGlobalNameWithoutGenerics() != "global::System.Type")
                             {
                                 return ReturnTypeError(nameof(Tes001_Message_EnumerableValueTupleWithTypeAttributeCreator));
                             }
@@ -82,7 +85,7 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
 
                             if (tupleType.TupleElements[2].Type is not INamedTypeSymbol funcTypeSymbol
                                 || !funcTypeSymbol.IsGenericType
-                                || TypeSymbolHelper.TypeSymbolToFullName(funcTypeSymbol) != "global::System.Func")
+                                || funcTypeSymbol.ToGlobalNameWithoutGenerics() != "global::System.Func")
                             {
                                 return ReturnTypeError(nameof(Tes001_Message_EnumerableValueTupleWithTypeAttributeCreator));
                             }
@@ -97,14 +100,14 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
                         }
                         else if (tupleType.TupleElements.Length == 2)
                         {
-                            if (TypeSymbolHelper.TypeSymbolToFullName(tupleType.TupleElements[0].Type) != "global::System.Type")
+                            if (tupleType.TupleElements[0].Type.ToGlobalNameWithoutGenerics() != "global::System.Type")
                             {
                                 return ReturnTypeError(nameof(Tes001_Message_EnumerableValueTupleWithTypeAttributeCreator));
                             }
 
                             if (tupleType.TupleElements[1].Type is not INamedTypeSymbol funcTypeSymbol
                                 || !funcTypeSymbol.IsGenericType
-                                || TypeSymbolHelper.TypeSymbolToFullName(funcTypeSymbol) != "global::System.Func")
+                                || funcTypeSymbol.ToGlobalNameWithoutGenerics() != "global::System.Func")
                             {
                                 return ReturnTypeError(nameof(Tes001_Message_EnumerableValueTupleWithTypeAttributeCreator));
                             }
@@ -122,7 +125,7 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
             }
 
             return (IExportMethodReturnTypeCollectionResult)new ExportMethodReturnTypeCollectionDiagnostic(
-                TesDiagnostics.Tes000_UnknownError,
+                Diagnostics.Tes000_UnknownError,
                 GetLocation());
 
             Location GetLocation()
@@ -134,9 +137,9 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
             ExportMethodReturnTypeCollectionDiagnostic ReturnTypeError(string messageKey)
             {
                 return new ExportMethodReturnTypeCollectionDiagnostic(
-                    TesDiagnostics.Tes001_MethodReturnTypeError,
+                    Diagnostics.Tes001_MethodReturnTypeError,
                     GetLocation(),
-                    TesDiagnostics.Localize(messageKey));
+                    Diagnostics.Localize(messageKey));
             }
         });
 
@@ -184,14 +187,14 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
                     {
                         token.ThrowIfCancellationRequested();
 
-                        if (!AssemblySymbolHelper.IsReference(referencedAssemblySymbol, expectedClassBaseType.ContainingAssembly, visited))
+                        if (!referencedAssemblySymbol.IsReference(expectedClassBaseType.ContainingAssembly, visited))
                         {
                             continue;
                         }
 
                         var isInternalsVisibleTo = referencedAssemblySymbol.GivesAccessTo(currentAssembly);
 
-                        foreach (var assemblyClassTypeSymbol in AssemblySymbolHelper.GetAllTypeSymbols(referencedAssemblySymbol))
+                        foreach (var assemblyClassTypeSymbol in referencedAssemblySymbol.GetAllTypeSymbols())
                         {
                             if (!isInternalsVisibleTo
                                 && assemblyClassTypeSymbol.DeclaredAccessibility != Accessibility.Public)
@@ -315,7 +318,7 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
                 return dictionary;
             });
 
-        // 在 Select 中生成源码以便支持增量取消。
+        // 在 Select 中通过 SourceTextBuilder 生成源码以便支持增量取消。
         var sourceCodeProvider = collectionResultIncrementalValueProvider.Select(static (result, token) =>
         {
             var codeList = new List<(string FileName, string SourceCode)>(result.Count);
@@ -325,12 +328,13 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
 
                 var exportMethodReturnTypeCollectionResult = item.Key;
                 var list = item.Value;
+                var partialClassType = exportMethodReturnTypeCollectionResult.ExportPartialMethodSymbol.ContainingType;
 
-                var methodCode = ExportMethodCodeGenerator.GenerateSourceCode(exportMethodReturnTypeCollectionResult, list, token);
-                var partialClassType = (INamedTypeSymbol)exportMethodReturnTypeCollectionResult.ExportPartialMethodSymbol.ContainingType;
-                var code = SourceCodeGeneratorHelper.GeneratePartialClassCode(partialClassType, methodCode);
+                var code = PartialTypeSourceCodeGenerator.GeneratePartialTypeCode(
+                    partialClassType,
+                    type => ExportMethodCodeGenerator.BuildMethod(type, exportMethodReturnTypeCollectionResult, list, token));
+
                 var fileName = $"{partialClassType.Name}.{exportMethodReturnTypeCollectionResult.ExportPartialMethodSymbol.Name}.g.cs";
-
                 codeList.Add((fileName, code));
             }
 
@@ -342,7 +346,7 @@ public class TelescopeExportTypeToMethodIncrementalGenerator : IIncrementalGener
             {
                 foreach (var (fileName, code) in result)
                 {
-                    productionContext.AddSource(fileName, code);
+                    productionContext.AddSource(fileName, SourceText.From(code, Encoding.UTF8));
                 }
             });
     }
