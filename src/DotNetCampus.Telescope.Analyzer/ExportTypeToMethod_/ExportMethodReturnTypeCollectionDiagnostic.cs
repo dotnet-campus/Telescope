@@ -1,20 +1,17 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers;
+namespace DotNetCampus.Telescope.Analyzer;
 
-class ExportMethodReturnTypeCollectionDiagnostic : IExportMethodReturnTypeCollectionResult
+internal class ExportMethodReturnTypeCollectionDiagnostic(
+    DiagnosticDescriptor diagnosticDescriptor,
+    Location? location = null,
+    params object[]? messageArgs) : IExportMethodReturnTypeCollectionResult
 {
-    public ExportMethodReturnTypeCollectionDiagnostic(DiagnosticDescriptor diagnosticDescriptor,
-        Location? location = null, params object[]? messageArgs)
-    {
-        DiagnosticDescriptor = diagnosticDescriptor;
-        Location = location;
-        MessageArgs = messageArgs;
-    }
+    public Location? Location { get; set; } = location;
 
-    public Location? Location { get; set; }
-    public DiagnosticDescriptor DiagnosticDescriptor { get; }
-    public object[]? MessageArgs { set; get; }
+    public DiagnosticDescriptor DiagnosticDescriptor { get; } = diagnosticDescriptor;
+
+    public object[]? MessageArgs { get; set; } = messageArgs;
 
     public Diagnostic ToDiagnostic() => Diagnostic.Create(DiagnosticDescriptor, Location, MessageArgs);
 }

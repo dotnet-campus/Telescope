@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace DotNetCampus.Telescope.Sample;
 
-namespace dotnetCampus.Telescope.Sample
+public interface IDemo
 {
-    public interface IDemo
-    {
-        void Foo();
-    }
+    void Foo();
 }

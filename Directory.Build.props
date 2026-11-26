@@ -1,21 +1,45 @@
 <Project>
+
   <Import Project="build\Version.props" />
+
+  <!-- 框架和语言信息 -->
   <PropertyGroup>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)</PackageOutputPath>
-    <Authors>dotnet-campus</Authors>
-    <Company>dotnet-campus</Company>
     <LangVersion>latest</LangVersion>
-    <DevelopmentDependency>true</DevelopmentDependency>
+    <Nullable>enable</Nullable>
+    <Deterministic>true</Deterministic>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      NETSDK1138: 目标框架（如 net6.0）不再受支持。
+      NU1507: 使用中央包管理时未指定包源映射。
+    -->
+    <NoWarn>$(NoWarn);NETSDK1138;NU1507</NoWarn>
+  </PropertyGroup>
+
+  <!-- 自定义属性 -->
+  <PropertyGroup>
+    <ThisYear>$([System.DateTime]::Now.ToString(`yyyy`))</ThisYear>
+  </PropertyGroup>
+
+  <!-- 库信息 -->
+  <PropertyGroup>
+    <Description>Telescope 是一套基于源生成器的预编译框架，用于在编译期扫描并导出程序集中的类型与特性元数据，避免运行时反射以大幅提升启动与运行性能。</Description>
+    <Authors>dotnet-campus</Authors>
+    <Company>dotnet campus（.NET 职业技术学院）</Company>
+    <Copyright>Copyright &#169; 2018-$(ThisYear) dotnet campus, All Rights Reserved.</Copyright>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>Copyright (c) 2018-2024 dotnet-campus</Copyright>
-    <PackageProjectUrl>https://github.com/dotnet-campus/Telescope</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/dotnet-campus/Telescope</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>source;dotnet;nuget;msbuild;compile</PackageTags>
+    <RepositoryUrl>https://github.com/dotnet-campus/Telescope</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/dotnet-campus/Telescope</PackageProjectUrl>
+    <PackageTags>source-generator;roslyn;dotnet;nuget;compile;telescope</PackageTags>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <!-- 现在 VisualStudio 2022 没有带上 .NET Framework 4.5 的负载，为了让大家打开项目就能构建，于是加上这个引用。详细请参阅 https://blog.walterlv.com/post/support-old-netfx-on-vs2022-or-later.html -->
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
-  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)src\DotNetCampus.Telescope\Package\buildTransitive\Package.props" />
+
 </Project>

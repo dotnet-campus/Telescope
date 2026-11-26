@@ -1,6 +1,6 @@
-﻿using dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib1;
+﻿using DotNetCampus.Telescope.Tests.Lib1;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib3;
+namespace DotNetCampus.Telescope.Tests.Lib3;
 
 [F1]
 public class F3 : F1

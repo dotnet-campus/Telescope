@@ -1,32 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.Core;
+namespace DotNetCampus.Telescope.Analyzer.Core;
 
-static class SourceCodeGeneratorHelper
+internal static class SourceCodeGeneratorHelper
 {
     /// <summary>
-    /// 创建分部方法的代码
+    /// 创建分部方法的代码。
     /// </summary>
-    /// <param name="partialMethodSymbol"></param>
-    /// <param name="methodCode">放在方法内的代码</param>
-    /// <param name="token"></param>
-    /// <returns></returns>
     public static string GeneratePartialMethodCode(IMethodSymbol partialMethodSymbol, string methodCode, CancellationToken token)
     {
         var methodSource = new StringBuilder();
 
-        var accessibilityCode =
-            partialMethodSymbol.DeclaredAccessibility.ToCSharpCode();
-        methodSource.Append(accessibilityCode).Append(' ');
+        var accessibilityCode = partialMethodSymbol.DeclaredAccessibility.ToCSharpCode();
+        if (!string.IsNullOrEmpty(accessibilityCode))
+        {
+            methodSource.Append(accessibilityCode).Append(' ');
+        }
 
         if (partialMethodSymbol.IsStatic)
         {
@@ -52,14 +46,13 @@ static class SourceCodeGeneratorHelper
     }
 
     /// <summary>
-    /// 根据传入的类型创建代码
+    /// 根据传入的类型创建代码。
     /// </summary>
-    /// <returns></returns>
     public static void GenerateTypeCode(ITypeSymbol typeSymbol, StringBuilder output, CancellationToken token)
     {
         var returnTypeCode = TypeSymbolHelper.TypeSymbolToFullName(typeSymbol);
         output.Append(returnTypeCode);
-        if (typeSymbol is INamedTypeSymbol returnTypeNamedTypeSymbol && returnTypeNamedTypeSymbol.IsGenericType)
+        if (typeSymbol is INamedTypeSymbol { IsGenericType: true } returnTypeNamedTypeSymbol)
         {
             output.Append('<');
             for (var i = 0; i < returnTypeNamedTypeSymbol.TypeArguments.Length; i++)
@@ -68,8 +61,8 @@ static class SourceCodeGeneratorHelper
 
                 var typeArgument = returnTypeNamedTypeSymbol.TypeArguments[i];
 
-                if (typeArgument.IsTupleType &&
-                    ValueTupleInfoParser.TryParse(typeArgument, token, out var valueTupleInfo))
+                if (typeArgument.IsTupleType
+                    && ValueTupleInfoParser.TryParse(typeArgument, token, out var valueTupleInfo))
                 {
                     output.Append('(');
                     for (var index = 0; index < valueTupleInfo.ItemList.Count; index++)
@@ -80,13 +73,12 @@ static class SourceCodeGeneratorHelper
 
                         if (!string.IsNullOrEmpty(info.ItemName))
                         {
-                            output.Append(' ')
-                                .Append(info.ItemName);
+                            output.Append(' ').Append(info.ItemName);
                         }
 
                         if (index != valueTupleInfo.ItemList.Count - 1)
                         {
-                            output.Append(',').Append(' ');
+                            output.Append(", ");
                         }
                     }
 
@@ -99,7 +91,7 @@ static class SourceCodeGeneratorHelper
 
                 if (i != returnTypeNamedTypeSymbol.TypeArguments.Length - 1)
                 {
-                    output.Append(',');
+                    output.Append(", ");
                 }
             }
 
@@ -108,94 +100,74 @@ static class SourceCodeGeneratorHelper
     }
 
     /// <summary>
-    /// 创建 partial 类型的代码
+    /// 创建 partial 类型的代码（支持顶级类型与嵌套类型）。
     /// </summary>
-    /// <param name="partialClassType"></param>
-    /// <param name="memberCode">放在类型里面的代码</param>
-    /// <returns></returns>
     public static string GeneratePartialClassCode(INamedTypeSymbol partialClassType, string memberCode)
     {
-        var symbolDisplayFormat = new SymbolDisplayFormat
-        (
-            // 带上命名空间和类型名
+        var symbolDisplayFormat = new SymbolDisplayFormat(
             SymbolDisplayGlobalNamespaceStyle.Omitted,
-            // 命名空间之前加上 global 防止冲突
-            SymbolDisplayTypeQualificationStyle
-                .NameAndContainingTypesAndNamespaces
-        );
-        var @namespace = partialClassType.ContainingNamespace?.ToDisplayString(symbolDisplayFormat);
+            SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+        var @namespace = partialClassType.ContainingNamespace is { IsGlobalNamespace: false } ns
+            ? ns.ToDisplayString(symbolDisplayFormat)
+            : string.Empty;
 
-        if (TryGetClassDeclarationList(partialClassType, out var declarationList))
-        {
-            int declarationCount = declarationList!.Count;
-            /* 以下代码用来解决嵌套类型
-            for (int i = 0; i < declarationCount - 1; i++)
-            {
-                string declarationSource = $@"
-            {declarationList[declarationCount - 1 - i]}
-            {{";
-                sb.Append($@"
-            {IndentSource(declarationSource, numIndentations: i + 1)}
-            ");
-             }
-             */
-
-            var isIncludeNamespace = !string.IsNullOrEmpty(@namespace);
-            var stringBuilder = new StringBuilder(AssemblyInfo.GeneratedCodeComment);
-
-            if (isIncludeNamespace)
-            {
-                stringBuilder.Append(@$"
-
-namespace {@namespace}
-{{");
-            }
-
-            // 不要带上 System.CodeDom.Compiler.GeneratedCodeAttribute 特性，因为一个类型如果是分部类型，可能有多个逻辑都在生成在不同的文件，如果这些文件同时都加上 GeneratedCodeAttribute 特性，将会导致 error CS0579: “global::System.CodeDom.Compiler.GeneratedCode”特性重复
-            //var generatedCodeAttributeSource = AssemblyInfo.GeneratedCodeAttribute;
-
-            // Add the core implementation for the derived context class.
-            string partialContextImplementation = $@"
-{declarationList[0]}
-{{
-    {IndentSource(memberCode, Math.Max(1, declarationCount - 1))}
-}}";
-            stringBuilder.AppendLine(IndentSource(partialContextImplementation, numIndentations: declarationCount));
-            if (isIncludeNamespace)
-            {
-                stringBuilder.AppendLine("}");
-            }
-
-            return stringBuilder.ToString();
-        }
-        else
+        if (!TryGetClassDeclarationList(partialClassType, out var declarationList) || declarationList is null)
         {
             throw new ArgumentException($"无法为 {partialClassType} 创建代码");
         }
+
+        // declarationList 为由内到外顺序，将其反转为由外到内。
+        declarationList.Reverse();
+
+        var isIncludeNamespace = !string.IsNullOrEmpty(@namespace);
+        var stringBuilder = new StringBuilder(AssemblyInfo.GeneratedCodeComment);
+
+        var currentIndent = 0;
+        if (isIncludeNamespace)
+        {
+            stringBuilder.AppendLine($"namespace {@namespace}");
+            stringBuilder.AppendLine("{");
+            currentIndent = 1;
+        }
+
+        foreach (var declaration in declarationList)
+        {
+            var indent = new string(' ', 4 * currentIndent);
+            stringBuilder.Append(indent).AppendLine(declaration);
+            stringBuilder.Append(indent).AppendLine("{");
+            currentIndent++;
+        }
+
+        stringBuilder.AppendLine(IndentSource(memberCode, currentIndent, shouldFirstLine: true));
+
+        for (var i = declarationList.Count - 1; i >= 0; i--)
+        {
+            currentIndent--;
+            var indent = new string(' ', 4 * currentIndent);
+            stringBuilder.Append(indent).AppendLine("}");
+        }
+
+        if (isIncludeNamespace)
+        {
+            stringBuilder.AppendLine("}");
+        }
+
+        return stringBuilder.ToString();
     }
 
-    /// <summary>
-    /// 尝试获取类型的定义
-    /// </summary>
-    /// <param name="typeSymbol"></param>
-    /// <param name="classDeclarationList">嵌套类的定义</param>
-    /// <returns></returns>
     private static bool TryGetClassDeclarationList(INamedTypeSymbol typeSymbol, out List<string>? classDeclarationList)
     {
-        INamedTypeSymbol currentSymbol = typeSymbol;
+        INamedTypeSymbol? currentSymbol = typeSymbol;
         classDeclarationList = null;
 
-        while (currentSymbol != null)
+        while (currentSymbol is not null)
         {
-            ClassDeclarationSyntax? classDeclarationSyntax = currentSymbol.DeclaringSyntaxReferences.First().GetSyntax() as ClassDeclarationSyntax;
-
-            if (classDeclarationSyntax != null)
+            if (currentSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is TypeDeclarationSyntax typeDeclarationSyntax)
             {
-                SyntaxTokenList tokenList = classDeclarationSyntax.Modifiers;
+                SyntaxTokenList tokenList = typeDeclarationSyntax.Modifiers;
                 int tokenCount = tokenList.Count;
 
                 bool isPartial = false;
-
                 string[] declarationElements = new string[tokenCount + 2];
 
                 for (int i = 0; i < tokenCount; i++)
@@ -215,35 +187,35 @@ namespace {@namespace}
                     return false;
                 }
 
-                declarationElements[tokenCount] = "class";
+                declarationElements[tokenCount] = typeDeclarationSyntax.Keyword.Text;
                 declarationElements[tokenCount + 1] = currentSymbol.Name;
 
-                (classDeclarationList ??= new List<string>()).Add(string.Join(" ", declarationElements));
+                (classDeclarationList ??= []).Add(string.Join(" ", declarationElements));
             }
 
             currentSymbol = currentSymbol.ContainingType;
         }
 
-        Debug.Assert(classDeclarationList != null);
-        Debug.Assert(classDeclarationList!.Count > 0);
-        return true;
+        return classDeclarationList is { Count: > 0 };
     }
 
     /// <summary>
-    /// 提供缩进的方法
+    /// 提供缩进的方法。
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="numIndentations"></param>
-    /// <param name="shouldFirstLine"></param>
-    /// <returns></returns>
     public static string IndentSource(string source, int numIndentations, bool shouldFirstLine = false)
     {
-        Debug.Assert(numIndentations >= 1);
-        var result = source.Replace("\r", "").Replace("\n", $"\r\n{new string(' ', 4 * numIndentations)}");
+        Debug.Assert(numIndentations >= 0);
+        if (numIndentations == 0)
+        {
+            return source;
+        }
+
+        var indent = new string(' ', 4 * numIndentations);
+        var result = source.Replace("\r", "").Replace("\n", $"\r\n{indent}");
 
         if (shouldFirstLine)
         {
-            result = new string(' ', 4 * numIndentations) + result;
+            result = indent + result;
         }
 
         return result;

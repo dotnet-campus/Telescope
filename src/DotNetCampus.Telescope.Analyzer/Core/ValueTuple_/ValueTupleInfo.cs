@@ -1,16 +1,9 @@
-﻿using System.Collections.Generic;
-
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.Core;
+﻿namespace DotNetCampus.Telescope.Analyzer.Core;
 
 /// <summary>
-/// 表示 ValueTuple 的信息
+/// 表示 ValueTuple 的信息。
 /// </summary>
-public class ValueTupleInfo
+internal class ValueTupleInfo(IReadOnlyList<ValueTupleItemSyntaxAndSymbolInfo> itemList)
 {
-    public ValueTupleInfo(IReadOnlyList<ValueTupleItemSyntaxAndSymbolInfo> itemList)
-    {
-        ItemList = itemList;
-    }
-
-    public IReadOnlyList<ValueTupleItemSyntaxAndSymbolInfo> ItemList { get; }
+    public IReadOnlyList<ValueTupleItemSyntaxAndSymbolInfo> ItemList { get; } = itemList;
 }

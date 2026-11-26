@@ -1,21 +1,16 @@
-﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers;
+namespace DotNetCampus.Telescope.Analyzer;
 
 /// <summary>
-/// 候选的导出类型结果
+/// 候选的导出类型结果。
+/// 包含标记导出的方法信息，以及程序集里面导出的类型。
 /// </summary>
-/// 包含标记导出的方法信息，以及程序集里面导出的类型
-class CandidateClassTypeResult
+internal class CandidateClassTypeResult(
+    ExportMethodReturnTypeCollectionResult exportMethodReturnTypeCollectionResult,
+    IReadOnlyList<INamedTypeSymbol> assemblyClassTypeSymbolList)
 {
-    public CandidateClassTypeResult(ExportMethodReturnTypeCollectionResult exportMethodReturnTypeCollectionResult, IReadOnlyList<INamedTypeSymbol> assemblyClassTypeSymbolList)
-    {
-        ExportMethodReturnTypeCollectionResult = exportMethodReturnTypeCollectionResult;
-        AssemblyClassTypeSymbolList = assemblyClassTypeSymbolList;
-    }
+    public ExportMethodReturnTypeCollectionResult ExportMethodReturnTypeCollectionResult { get; } = exportMethodReturnTypeCollectionResult;
 
-    public ExportMethodReturnTypeCollectionResult ExportMethodReturnTypeCollectionResult { get; }
-
-    public IReadOnlyList<INamedTypeSymbol> AssemblyClassTypeSymbolList { get; }
+    public IReadOnlyList<INamedTypeSymbol> AssemblyClassTypeSymbolList { get; } = assemblyClassTypeSymbolList;
 }

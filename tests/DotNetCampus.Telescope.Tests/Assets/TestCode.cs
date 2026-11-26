@@ -1,11 +1,11 @@
-﻿using dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib1;
+﻿using DotNetCampus.Telescope.Tests.Lib1;
 
 using System;
 
-namespace dotnetCampus.Telescope.SourceGenerator.Test.Assets;
+namespace DotNetCampus.Telescope.Tests.Assets;
 
 [F1]
-public class CurrentFoo : dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib1.F1
+public class CurrentFoo : DotNetCampus.Telescope.Tests.Lib1.F1
 {
 }
 
@@ -15,11 +15,16 @@ abstract class F1 : Base
 }
 
 [FooAttribute()]
-class Foo : Base
+public class Foo : Base
 {
 }
 
-class Base
+[Foo(1, FooEnum.N2, typeof(Base), null, Number2 = 42, Text = "hello \"world\"\nline2", Tags = new[] { "a", "b" })]
+public class FooWithComplexAttribute : Base
+{
+}
+
+public class Base
 {
 }
 
@@ -30,7 +35,7 @@ public enum FooEnum
     N3,
 }
 
-class FooAttribute : Attribute
+public class FooAttribute : Attribute
 {
     public FooAttribute()
     {
@@ -41,6 +46,7 @@ class FooAttribute : Attribute
         Number1 = number1;
         FooEnum1 = fooEnum;
         Type1 = type1;
+        Type3 = type3;
     }
 
     public ulong Number1 { get; set; }
@@ -53,4 +59,7 @@ class FooAttribute : Attribute
     public Type? Type1 { get; set; }
     public Type? Type2 { get; set; }
     public Type? Type3 { get; set; }
+
+    public string? Text { get; set; }
+    public string[]? Tags { get; set; }
 }

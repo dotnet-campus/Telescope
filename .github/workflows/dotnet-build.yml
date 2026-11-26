@@ -1,6 +1,6 @@
-name: .NET Core
+name: .NET Build
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -8,10 +8,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+    - uses: actions/checkout@v5
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: |
+          8.0.x
+          10.0.x
+
     - name: Build with dotnet
-      run: dotnet build --configuration Release -v n
+      run: dotnet build --configuration Release
+
+    - name: Test
+      run: dotnet test --configuration Release --no-build

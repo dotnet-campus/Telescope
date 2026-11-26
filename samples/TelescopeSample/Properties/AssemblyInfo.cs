@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DotNetCampus.Telescope;
+using DotNetCampus.Telescope.Sample;
 
-using dotnetCampus.Telescope;
-using dotnetCampus.Telescope.Sample;
-
-[assembly: MarkExport(typeof(dotnetCampus.Telescope.Sample.IDemo), typeof(DemoAttribute))]
+[assembly: MarkExport(typeof(IDemo), typeof(DemoAttribute))]

@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
-using dotnetCampus.Telescope.SourceGenerator.Test.Utils;
-using dotnetCampus.Telescope.SourceGeneratorAnalyzers;
+using DotNetCampus.Telescope.Analyzer;
+using DotNetCampus.Telescope.Tests.Utils;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace dotnetCampus.Telescope.SourceGenerator.Test;
+namespace DotNetCampus.Telescope.Tests;
 
 [TestClass]
 public class TelescopeIncrementalGeneratorTest
@@ -22,12 +15,12 @@ public class TelescopeIncrementalGeneratorTest
     public void TestCollectionAssembly()
     {
         var compilation = TestCodeProvider.CreateCompilation();
+        compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText("""
+            using DotNetCampus.Telescope;
+            using DotNetCampus.Telescope.Tests.Assets;
 
-        compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(@"
-using dotnetCampus.Telescope;
-using dotnetCampus.Telescope.SourceGenerator.Test.Assets;
-
-[assembly: MarkExport(typeof(Base), typeof(FooAttribute))]"));
+            [assembly: MarkExport(typeof(Base), typeof(FooAttribute))]
+            """));
 
         var generator = new TelescopeIncrementalGenerator();
         var driver = CSharpGeneratorDriver.Create(generator);
@@ -36,25 +29,58 @@ using dotnetCampus.Telescope.SourceGenerator.Test.Assets;
 
         Assert.AreEqual(0, diagnostics.Length);
 
-        var attributedTypesExportCode = outputCompilation.SyntaxTrees.FirstOrDefault(t => Path.GetFileName(t.FilePath) == "__AttributedTypesExport__.cs");
+        var errors = outputCompilation.GetDiagnostics()
+            .Where(static d => d.Severity == DiagnosticSeverity.Error)
+            .ToList();
+        Assert.AreEqual(0, errors.Count, string.Join(Environment.NewLine, errors.Select(static e => e.ToString())));
+
+        var attributedTypesExportCode = outputCompilation.SyntaxTrees
+            .FirstOrDefault(static t => Path.GetFileName(t.FilePath) == "__AttributedTypesExport__.g.cs");
         Assert.IsNotNull(attributedTypesExportCode);
+
         var codeText = attributedTypesExportCode.GetText().ToString();
-        // 内容如下
-        /*
-            public partial class __AttributedTypesExport__ : ICompileTimeAttributedTypesExporter<global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Base,  lobal::dotnetCampus.Telescope.SourceGenerator.Test.Assets.FooAttribute>
-            {
-                AttributedTypeMetadata<global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Base, global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.FooAttribute>[]  CompileTimeAttributedTypesExporter<global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Base,  lobal::dotnetCampus.Telescope.SourceGenerator.Test.Assets.FooAttribute>.ExportAttributeTypes()
-                {
-                    return new AttributedTypeMetadata<global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Base, lobal::dotnetCampus.Telescope.SourceGenerator.Test.Assets.FooAttribute> []
-                    {
-                        new AttributedTypeMetadata<global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Base,  global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.FooAttribute>typeof(global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Foo), new  global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.FooAttribute() { }, () => ew global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Foo())
-                    };
-                }
-            }
-         */
-        Assert.AreEqual(true, codeText.Contains("global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Base"));
-        Assert.AreEqual(true, codeText.Contains("global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.FooAttribute"));
-        Assert.AreEqual(true, codeText.Contains("typeof(global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Foo)"));
-        Assert.AreEqual(true, codeText.Contains("new global::dotnetCampus.Telescope.SourceGenerator.Test.Assets.Foo()"));
+        Assert.IsTrue(codeText.Contains("global::DotNetCampus.Telescope.Tests.Assets.Base"));
+        Assert.IsTrue(codeText.Contains("global::DotNetCampus.Telescope.Tests.Assets.FooAttribute"));
+        Assert.IsTrue(codeText.Contains("typeof(global::DotNetCampus.Telescope.Tests.Assets.Foo)"));
+        Assert.IsTrue(codeText.Contains("new global::DotNetCampus.Telescope.Tests.Assets.Foo()"));
+        Assert.IsTrue(codeText.Contains("typeof(global::DotNetCampus.Telescope.Tests.Assets.FooWithComplexAttribute)"));
+    }
+
+    [TestMethod]
+    public void TestAttributedTypesFromAssemblyAtRuntime()
+    {
+        var compilation = TestCodeProvider.CreateCompilation();
+        compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText("""
+            using DotNetCampus.Telescope;
+            using DotNetCampus.Telescope.Tests.Assets;
+
+            [assembly: MarkExport(typeof(Base), typeof(FooAttribute))]
+            """));
+
+        var generator = new TelescopeIncrementalGenerator();
+        var driver = CSharpGeneratorDriver.Create(generator);
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+        Assert.AreEqual(0, diagnostics.Length);
+
+        using var peStream = new MemoryStream();
+        var emitResult = outputCompilation.Emit(peStream);
+        Assert.IsTrue(
+            emitResult.Success,
+            string.Join(Environment.NewLine, emitResult.Diagnostics.Select(static d => d.ToString())));
+
+        peStream.Position = 0;
+        var loadedAssembly = Assembly.Load(peStream.ToArray());
+
+        var baseType = loadedAssembly.GetType("DotNetCampus.Telescope.Tests.Assets.Base")!;
+        var attrType = loadedAssembly.GetType("DotNetCampus.Telescope.Tests.Assets.FooAttribute")!;
+        var fromAssemblyMethod = typeof(AttributedTypes)
+            .GetMethod(nameof(AttributedTypes.FromAssembly), [typeof(Assembly[])])!
+            .MakeGenericMethod(baseType, attrType);
+
+        var results = ((System.Collections.IEnumerable)fromAssemblyMethod.Invoke(null, [new[] { loadedAssembly }])!)
+            .Cast<object>()
+            .ToList();
+
+        Assert.AreEqual(2, results.Count);
     }
 }

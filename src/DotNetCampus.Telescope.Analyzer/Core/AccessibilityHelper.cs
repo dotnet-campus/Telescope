@@ -1,9 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.Core;
+namespace DotNetCampus.Telescope.Analyzer.Core;
 
-static class AccessibilityHelper
+internal static class AccessibilityHelper
 {
     public static string ToCSharpCode(this Accessibility accessibility)
         => accessibility switch
@@ -12,7 +11,8 @@ static class AccessibilityHelper
             Accessibility.Private => "private",
             Accessibility.Internal => "internal",
             Accessibility.Protected => "protected",
+            Accessibility.ProtectedOrInternal => "protected internal",
             Accessibility.ProtectedAndInternal => "private protected",
-            _ => string.Empty
+            _ => string.Empty,
         };
 }

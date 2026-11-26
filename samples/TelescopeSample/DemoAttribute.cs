@@ -1,19 +1,7 @@
-﻿using System;
+﻿namespace DotNetCampus.Telescope.Sample;
 
-namespace dotnetCampus.Telescope.Sample
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+public sealed class DemoAttribute(string? value = null) : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public sealed class DemoAttribute : Attribute
-    {
-        public DemoAttribute()
-        {
-        }
-
-        public DemoAttribute(string value)
-        {
-            Value = value;
-        }
-
-        public string? Value { get; }
-    }
+    public string? Value { get; } = value;
 }

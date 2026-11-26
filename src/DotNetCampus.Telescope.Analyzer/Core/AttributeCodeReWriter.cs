@@ -1,106 +1,88 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.Core;
+namespace DotNetCampus.Telescope.Analyzer.Core;
 
-static class AttributeCodeReWriter
+internal static class AttributeCodeReWriter
 {
     /// <summary>
-    /// 从 <paramref name="attributeData"/> 转换为特性生成代码。从 `[Foo(xx, xxx)]` 语义转换为 `new Foo(xx, xxx)` 的生成代码
+    /// 从 <paramref name="attributeData"/> 转换为特性生成代码。从 <c>[Foo(xx, xxx)]</c> 语义转换为 <c>new Foo(xx, xxx)</c> 的生成代码。
     /// </summary>
-    /// <param name="attributeData"></param>
-    /// <returns></returns>
     public static string GetAttributeCreatedCode(AttributeData attributeData)
     {
-        // 放在特性的构造函数的参数列表，例如 [Foo(1,2,3)] 将会获取到 `1` `2` `3` 三个参数
-        var constructorArgumentCodeList = new List<string>();
+        var constructorArgumentCodeList = new List<string>(attributeData.ConstructorArguments.Length);
         foreach (TypedConstant constructorArgument in attributeData.ConstructorArguments)
         {
-            var constructorArgumentCode = TypedConstantToCodeString(constructorArgument);
-
-            constructorArgumentCodeList.Add(constructorArgumentCode);
+            constructorArgumentCodeList.Add(TypedConstantToCodeString(constructorArgument));
         }
 
-        var namedArgumentCodeList = new List<(string propertyName, string valueCode)>();
+        var namedArgumentCodeList = new List<(string PropertyName, string ValueCode)>(attributeData.NamedArguments.Length);
         foreach (var keyValuePair in attributeData.NamedArguments)
         {
-            var key = keyValuePair.Key;
-
-            var typedConstant = keyValuePair.Value;
-            var argumentCode = TypedConstantToCodeString(typedConstant);
-
-            namedArgumentCodeList.Add((key, argumentCode));
+            namedArgumentCodeList.Add((keyValuePair.Key, TypedConstantToCodeString(keyValuePair.Value)));
         }
 
-        return
-            $@"new {TypeSymbolHelper.TypeSymbolToFullName(attributeData.AttributeClass!)}({string.Join(",", constructorArgumentCodeList)})
-{{
-           {string.Join(@",
-           ", namedArgumentCodeList.Select(x => $"{x.propertyName} = {x.valueCode}"))}
-}}";
+        var attributeFullName = TypeSymbolHelper.TypeSymbolToFullName(attributeData.AttributeClass!);
+        var constructorArgs = string.Join(", ", constructorArgumentCodeList);
+
+        if (namedArgumentCodeList.Count == 0)
+        {
+            return $"new {attributeFullName}({constructorArgs})";
+        }
+
+        var namedArgs = string.Join(",\n    ", namedArgumentCodeList.Select(static x => $"{x.PropertyName} = {x.ValueCode}"));
+        return $$"""
+            new {{attributeFullName}}({{constructorArgs}})
+            {
+                {{namedArgs}}
+            }
+            """;
 
         static string TypedConstantToCodeString(TypedConstant typedConstant)
         {
-            string constructorArgumentCode;
+            if (typedConstant.IsNull)
+            {
+                return "null";
+            }
+
             switch (typedConstant.Kind)
             {
                 case TypedConstantKind.Enum:
                 {
-                    // "(Foo.Enum1) 1"
-                    constructorArgumentCode =
-                        $"({TypeSymbolHelper.TypeSymbolToFullName(typedConstant.Type!)}) {typedConstant.Value}";
-                    break;
+                    var enumTypeName = TypeSymbolHelper.TypeSymbolToFullName(typedConstant.Type!);
+                    var valueText = typedConstant.Value?.ToString() ?? "0";
+                    return valueText.StartsWith("-", StringComparison.Ordinal)
+                        ? $"({enumTypeName})({valueText})"
+                        : $"({enumTypeName}){valueText}";
                 }
                 case TypedConstantKind.Type:
                 {
-                    var typeSymbol = (ITypeSymbol?)typedConstant.Value;
-                    if (typeSymbol is null)
-                    {
-                        constructorArgumentCode = "null";
-                    }
-                    else
-                    {
-                        constructorArgumentCode = $"typeof({TypeSymbolHelper.TypeSymbolToFullName(typeSymbol)})";
-                    }
-
-                    break;
+                    return typedConstant.Value is ITypeSymbol typeSymbol
+                        ? $"typeof({TypeSymbolHelper.TypeSymbolToFullName(typeSymbol)})"
+                        : "null";
                 }
                 case TypedConstantKind.Primitive:
                 {
-                    if (typedConstant.Value is string text)
-                    {
-                        constructorArgumentCode = "\"" + text + "\"";
-                    }
-                    else if (typedConstant.Value is true)
-                    {
-                        constructorArgumentCode = "true";
-                    }
-                    else if (typedConstant.Value is false)
-                    {
-                        constructorArgumentCode = "false";
-                    }
-                    else
-                    {
-                        constructorArgumentCode = typedConstant.Value?.ToString() ?? "null";
-                    }
-
-                    break;
+                    return typedConstant.Value is null
+                        ? "null"
+                        : SymbolDisplay.FormatPrimitive(typedConstant.Value, quoteStrings: true, useHexadecimalNumbers: false);
                 }
                 case TypedConstantKind.Array:
                 {
-                    var arrayElements = typedConstant.Values;
-                    constructorArgumentCode = $"[ {string.Join(", ", arrayElements.Select(TypedConstantToCodeString))} ]";
-                    break;
+                    var elements = string.Join(", ", typedConstant.Values.Select(TypedConstantToCodeString));
+                    if (typedConstant.Type is IArrayTypeSymbol arrayTypeSymbol)
+                    {
+                        var elementTypeName = arrayTypeSymbol.ElementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        return $"new {elementTypeName}[] {{ {elements} }}";
+                    }
+
+                    return $"new object[] {{ {elements} }}";
                 }
                 default:
                 {
-                    constructorArgumentCode = typedConstant.Value?.ToString() ?? "null";
-                    break;
+                    return typedConstant.Value?.ToString() ?? "null";
                 }
             }
-
-            return constructorArgumentCode;
         }
     }
 }

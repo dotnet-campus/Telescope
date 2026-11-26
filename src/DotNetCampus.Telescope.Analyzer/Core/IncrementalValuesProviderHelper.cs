@@ -1,17 +1,14 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.Core;
+namespace DotNetCampus.Telescope.Analyzer.Core;
 
-static class IncrementalValuesProviderHelper
+internal static class IncrementalValuesProviderHelper
 {
     /// <summary>
-    /// 过滤掉空的值
+    /// 过滤掉空的值。
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="provider"></param>
-    /// <returns></returns>
     public static IncrementalValuesProvider<T> ExcludeNulls<T>(this IncrementalValuesProvider<T?> provider)
     {
-        return provider.Where(static t => t != null).Select(static (t, _) => t!);
+        return provider.Where(static t => t is not null).Select(static (t, _) => t!);
     }
 }

@@ -1,25 +1,19 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers.Core;
+namespace DotNetCampus.Telescope.Analyzer.Core;
 
 /// <summary>
-/// 表示 ValueTuple 的每一项的定义内容
+/// 表示 ValueTuple 的每一项的定义内容。
 /// </summary>
-public class ValueTupleItemSyntaxAndSymbolInfo
+internal class ValueTupleItemSyntaxAndSymbolInfo(ITypeSymbol itemType, string itemName)
 {
-    public ValueTupleItemSyntaxAndSymbolInfo(ITypeSymbol itemType, string itemName)
-    {
-        ItemType = itemType;
-        ItemName = itemName;
-    }
+    /// <summary>
+    /// 类型。
+    /// </summary>
+    public ITypeSymbol ItemType { get; } = itemType;
 
     /// <summary>
-    /// 类型
+    /// 命名。如果没有命名，那就是空字符串。
     /// </summary>
-    public ITypeSymbol ItemType { get; }
-
-    /// <summary>
-    /// 命名。如果没有命名，那就是空字符串
-    /// </summary>
-    public string ItemName { get; }
+    public string ItemName { get; } = itemName;
 }

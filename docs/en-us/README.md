@@ -1,88 +1,97 @@
 # Telescope
 
-Telescope is a pre-compilation framework.
+Telescope is a pre-compilation framework powered by Roslyn Incremental Source Generators.
 
-Once Telescope is installed in a project, you can start writing pre-compilation code in the project. By executing these pre-compilation codes, the project can execute some codes during compilation that usually need to be executed at runtime. This method can migrate time-consuming runtime code to compile-time execution, greatly improving runtime performance.
+|[中文](../../README.md)|[English](README.md)|
+|-|-|
 
-## Telescope.SourceGeneratorAnalyzers
+Once `DotNetCampus.Telescope` is installed in a project, types and attribute metadata are discovered and emitted at compile time, eliminating expensive runtime reflection and significantly improving startup and runtime performance.
 
-The version of Telescope using SourceGenerator source code generator
+[![.NET Build](https://github.com/dotnet-campus/Telescope/actions/workflows/dotnet-build.yml/badge.svg)](https://github.com/dotnet-campus/Telescope/actions/workflows/dotnet-build.yml)
 
-It can be used to export specified types
+|Package|NuGet|
+|--|--|
+|DotNetCampus.Telescope|[![NuGet](https://img.shields.io/nuget/v/DotNetCampus.Telescope.svg)](https://www.nuget.org/packages/DotNetCampus.Telescope)|
 
-### Usage
+Supported target frameworks: `net6.0`, `netstandard2.0`, `net45`.
 
-Supports multiple different export methods
+## Installation
 
-#### Partial Method Style
+```xml
+<PackageReference Include="DotNetCampus.Telescope" Version="1.0.0" />
+```
 
-This is the recommended method
+`DotNetCampus.Telescope` ships both the runtime API and the Roslyn incremental source generators in a single NuGet package.
 
-Define partial methods in the partial class, mark the partial method with the `dotnetCampus.Telescope.TelescopeExportAttribute` attribute, and the return value includes export conditions, as follows
+## Usage
+
+### 1. Partial Method Style (Recommended)
+
+Declare a partial method in a partial class, mark it with `[TelescopeExport]`, and specify the export criteria in its return type:
 
 ```csharp
+using DotNetCampus.Telescope;
+
 internal partial class Program
 {
-    [dotnetCampus.Telescope.TelescopeExportAttribute()]
+    [TelescopeExport]
     private static partial IEnumerable<(Type type, F1Attribute attribute, Func<Base> creator)> ExportFooEnumerable();
 }
 ```
 
-The above code will export all types in the current project that are marked with `F1Attribute` and inherit `Base`. After the Telescope source code generator, the code generated is roughly as follows
+The source generator emits the implementation returning all non-abstract types deriving from `Base` and marked with `F1Attribute`:
 
 ```csharp
-    [global::System.CodeDom.Compiler.GeneratedCode("dotnetCampus.Telescope.SourceGeneratorAnalyzers", "1.0.0")]
-    internal partial class Program
+internal partial class Program
+{
+    private static partial global::System.Collections.Generic.IEnumerable<(global::System.Type type, global::Demo.F1Attribute attribute, global::System.Func<global::Demo.Base> creator)> ExportFooEnumerable()
     {
-        private static partial IEnumerable<(Type type, F1Attribute attribute, Func<Base> creator)> ExportFooEnumerable()
-        {
-            yield return (typeof(F2), new F1Attribute()
-            {
-                       
-            }, () => new F2());
-            yield return (typeof(F3), new F1Attribute()
-            {
-                       
-            }, () => new F3());
-        }
+        yield return (typeof(global::Demo.F2), new global::Demo.F1Attribute(), () => new global::Demo.F2());
+        yield return (typeof(global::Demo.F3), new global::Demo.F1Attribute(), () => new global::Demo.F3());
     }
+}
 ```
 
-Advanced usage:
+To export all derived types without requiring an attribute, omit the attribute element from the tuple:
 
-You can add the IncludeReference attribute to TelescopeExportAttribute to export all types of referenced assemblies that meet the conditions, as follows
+```csharp
+[TelescopeExport]
+private static partial IEnumerable<(Type type, Func<Base> creator)> ExportAllSubTypes();
+```
+
+#### Including Referenced Assemblies
+
+Set `IncludeReferences = true` on `TelescopeExportAttribute` to also scan referenced assemblies:
 
 ```csharp
 internal partial class Program
 {
-    [dotnetCampus.Telescope.TelescopeExportAttribute(IncludeReference = true)]
+    [TelescopeExport(IncludeReferences = true)]
     private static partial IEnumerable<(Type type, F1Attribute attribute, Func<Base> creator)> ExportFooEnumerable();
 }
 ```
 
-It is only recommended to add the `IncludeReference = true` attribute in the entry assembly, because once this attribute is added, any changes to the referenced assembly may cause the source code generator to execute repeatedly, reducing VisualStudio performance
+It is recommended to enable `IncludeReferences = true` only in the entry assembly, because changes in referenced assemblies will re-trigger source generation.
 
-#### Assembly Marking
+### 2. Assembly Attribute Style (`MarkExport` + `AttributedTypes`)
 
-This is the traditional implementation method of Telescope. In the project where you need to export types, mark the `dotnetCampus.Telescope.MarkExportAttribute` attribute, as follows
-
-```csharp
-[assembly: dotnetCampus.Telescope.MarkExportAttribute(typeof(Base), typeof(FooAttribute))]
-```
-
-After marking, the `dotnetCampus.Telescope.__AttributedTypesExport__` type will be automatically generated, and you can directly use it in the code, as follows
+Mark the assembly with `[assembly: MarkExport(...)]`:
 
 ```csharp
-        var attributedTypesExport = new __AttributedTypesExport__();
-        ICompileTimeAttributedTypesExporter<Base, FooAttribute> exporter = attributedTypesExport;
-        foreach (var exportedTypeMetadata in exporter.ExportAttributeTypes())
-        {
-            Console.WriteLine(exportedTypeMetadata.RealType.FullName);
-        }
+using DotNetCampus.Telescope;
+
+[assembly: MarkExport(typeof(Base), typeof(FooAttribute))]
 ```
 
-You can also use the `dotnetCampus.Telescope.AttributedTypes` helper class to get all exported types
+The source generator generates `DotNetCampus.Telescope.__AttributedTypesExport__`, which can be queried across assemblies at runtime via `AttributedTypes.FromAssembly`:
 
-## Develop for this project
+```csharp
+using DotNetCampus.Telescope;
 
-We very much hope that you can join the development of Telescope, please read [How to Contribute to Telescope](/docs/how-to-contribute.md) to understand the development related conventions and technical requirements.
+var exportedTypes = AttributedTypes.FromAssembly<Base, FooAttribute>(typeof(Program).Assembly);
+foreach (var metadata in exportedTypes)
+{
+    Console.WriteLine(metadata.RealType.FullName);
+    var instance = metadata.CreateInstance();
+}
+```

@@ -1,39 +1,35 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
-using System.IO;
-using System.Linq;
-
-namespace dotnetCampus.Telescope.SourceGenerator.Test.Utils;
+namespace DotNetCampus.Telescope.Tests.Utils;
 
 internal static class TestCodeProvider
 {
     public static string GetTestCode()
     {
-        var manifestResourceStream = typeof(TestCodeProvider).Assembly.GetManifestResourceStream("dotnetCampus.Telescope.SourceGenerator.Test.Assets.TestCode.cs")!;
-        var streamReader = new StreamReader(manifestResourceStream);
+        var manifestResourceStream = typeof(TestCodeProvider).Assembly
+            .GetManifestResourceStream("DotNetCampus.Telescope.Tests.Assets.TestCode.cs")!;
+        using var streamReader = new StreamReader(manifestResourceStream);
         return streamReader.ReadToEnd();
     }
 
-    public static CSharpCompilation CreateCompilation()
+    public static CSharpCompilation CreateCompilation(OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {
-        return CreateCompilation(GetTestCode());
+        return CreateCompilation(GetTestCode(), outputKind);
     }
 
-    private static CSharpCompilation CreateCompilation(string source)
+    private static CSharpCompilation CreateCompilation(string source, OutputKind outputKind)
     {
-        return CSharpCompilation.Create("compilation",
-            new[] { CSharpSyntaxTree.ParseText(source) },
-            new[]
+        return CSharpCompilation.Create(
+            "TestCompilation",
+            [CSharpSyntaxTree.ParseText(source)],
+            new MetadataReference[]
             {
                 MetadataReference.CreateFromFile(typeof(MarkExportAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib1.F1)
-                    .Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib2.F2)
-                    .Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(dotnetCampus.Telescope.SourceGeneratorAnalyzers.TestLib3.F3)
-                    .Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Lib1.F1).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Lib2.F2).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Lib3.F3).Assembly.Location),
             }.Concat(MetadataReferenceProvider.GetDotNetMetadataReferenceList()),
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            new CSharpCompilationOptions(outputKind, nullableContextOptions: NullableContextOptions.Enable));
     }
 }

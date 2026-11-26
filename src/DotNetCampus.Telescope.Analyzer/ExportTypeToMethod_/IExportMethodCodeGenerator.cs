@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers;
+namespace DotNetCampus.Telescope.Analyzer;
 
 /// <summary>
-/// 导入方法的生成器
+/// 导出方法的生成器。
 /// </summary>
-interface IExportMethodCodeGenerator
+internal interface IExportMethodCodeGenerator
 {
-    string GenerateSourceCode(ExportMethodReturnTypeCollectionResult exportMethodReturnTypeCollectionResult,
-        List<INamedTypeSymbol> list, CancellationToken token);
+    string GenerateSourceCode(
+        ExportMethodReturnTypeCollectionResult exportMethodReturnTypeCollectionResult,
+        List<INamedTypeSymbol> list,
+        CancellationToken token);
 }

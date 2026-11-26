@@ -1,10 +1,9 @@
-﻿namespace dotnetCampus.Telescope.Sample.Impl
+﻿namespace DotNetCampus.Telescope.Sample.Impl;
+
+[Demo("2")]
+public class Demo2 : IDemo
 {
-    [Demo("2")]
-    public class Demo2 : IDemo
+    public void Foo()
     {
-        public void Foo()
-        {
-        }
     }
 }

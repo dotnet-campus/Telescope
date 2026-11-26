@@ -1,17 +1,10 @@
-﻿using System.Collections.Generic;
-
-namespace dotnetCampus.Telescope.SourceGeneratorAnalyzers;
+﻿namespace DotNetCampus.Telescope.Analyzer;
 
 /// <summary>
-/// 候选收集的结果
+/// 候选收集的结果。
+/// 包含所有的导出结果，例如项目里面有多个导出方法，每一个导出方法对应一个 <see cref="CandidateClassTypeResult"/>。
 /// </summary>
-/// 包含所有的导出结果。比如项目里面有多个导出方法，每一个导出方法就是一个 CandidateClassTypeResult 对象
-class CandidateClassCollectionResult
+internal class CandidateClassCollectionResult(IReadOnlyList<CandidateClassTypeResult> candidateClassTypeResultList)
 {
-    public CandidateClassCollectionResult(IReadOnlyList<CandidateClassTypeResult> candidateClassTypeResultList)
-    {
-        CandidateClassTypeResultList = candidateClassTypeResultList;
-    }
-
-    public IReadOnlyList<CandidateClassTypeResult> CandidateClassTypeResultList { get; }
+    public IReadOnlyList<CandidateClassTypeResult> CandidateClassTypeResultList { get; } = candidateClassTypeResultList;
 }

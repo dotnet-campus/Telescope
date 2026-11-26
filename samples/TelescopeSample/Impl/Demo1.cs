@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace DotNetCampus.Telescope.Sample.Impl;
 
-namespace dotnetCampus.Telescope.Sample.Impl
+[Demo("1")]
+public class Demo1 : IDemo
 {
-    [Demo("1")]
-    public class Demo1 : IDemo
+    public void Foo()
     {
-        public void Foo()
-        {
-        }
     }
 }
