@@ -1,0 +1,34 @@
+name: NuGet Publish
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: |
+          8.0.x
+          10.0.x
+
+    - name: Install dotnet tool
+      run: dotnet tool install -g dotnetCampus.TagToVersion
+
+    - name: Set tag to version
+      run: dotnet TagToVersion -t ${{ github.ref }}
+
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+
+    - name: Push generated package to NuGet
+      run: |
+        dotnet nuget push .\artifacts\package\release\*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NugetKey }} --skip-duplicate
+        dotnet nuget push .\artifacts\package\release\*.nupkg --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

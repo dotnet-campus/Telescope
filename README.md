@@ -1,99 +1,103 @@
 # Telescope
 
-Telescope 是一套预编译框架。
+Telescope 是一套基于 Roslyn 增量源生成器的预编译框架。
 
 |[中文](README.md)|[English](docs/en-us/README.md)|
 |-|-|
 
-当项目安装 Telescope 了之后，项目中即可开始书写预编译代码。通过执行这些预编译代码，项目可以在编译期间执行一些平时需要在运行时执行的代码。这种方式能够将耗时的运行时代码迁移到编译期执行，大幅度提升运行时性能。
+当项目安装 `DotNetCampus.Telescope` NuGet 包后，即可在编译期自动扫描并导出程序集中的类型与特性元数据，将耗时的运行时反射迁移到编译期执行，大幅度提升应用程序启动与运行性能。
 
-![](https://github.com/dotnet-campus/Telescope/workflows/.NET%20Core/badge.svg)
+[![.NET Build](https://github.com/dotnet-campus/Telescope/actions/workflows/dotnet-build.yml/badge.svg)](https://github.com/dotnet-campus/Telescope/actions/workflows/dotnet-build.yml)
 
 |Package|NuGet|
 |--|--|
-|Telescope|[![](https://img.shields.io/nuget/v/dotnetCampus.Telescope.svg)](https://www.nuget.org/packages/dotnetCampus.Telescope)|
-|Telescope.SourceGeneratorAnalyzers|[![](https://img.shields.io/nuget/v/dotnetCampus.Telescope.SourceGeneratorAnalyzers.svg)](https://www.nuget.org/packages/dotnetCampus.Telescope.SourceGeneratorAnalyzers)|
+|DotNetCampus.Telescope|[![NuGet](https://img.shields.io/nuget/v/DotNetCampus.Telescope.svg)](https://www.nuget.org/packages/DotNetCampus.Telescope)|
 
-## Telescope.SourceGeneratorAnalyzers
+支持的目标框架：`net6.0`、`netstandard2.0`、`net45`。
 
-使用 SourceGenerator 源代码生成器的 Telescope 版本
+## 安装
 
-可以用来导出指定类型
+```xml
+<PackageReference Include="DotNetCampus.Telescope" Version="1.0.0" />
+```
 
-### 用法
+`DotNetCampus.Telescope` 单个 NuGet 包同时包含运行时类型与 Roslyn 增量源生成器，不再需要分别安装 `TelescopeSource` 或独立的分析器包。
 
-支持多个不同的导出写法
+## 用法
 
-#### 分部方法式
+支持两种导出写法：
 
-这是推荐的方法
+### 1. 分部方法式（推荐）
 
-在分部类里定义分部方法，分部方法标记 `dotnetCampus.Telescope.TelescopeExportAttribute` 特性，且返回值包括导出条件，如以下写法
+在分部类里定义分部方法，标记 `[TelescopeExport]` 特性，并在返回值元组中声明导出条件：
 
 ```csharp
+using DotNetCampus.Telescope;
+
 internal partial class Program
 {
-    [dotnetCampus.Telescope.TelescopeExportAttribute()]
+    [TelescopeExport]
     private static partial IEnumerable<(Type type, F1Attribute attribute, Func<Base> creator)> ExportFooEnumerable();
 }
 ```
 
-以上代码将导出当前项目标记了 `F1Attribute` 且继承 `Base` 的所有类型。经过 Telescope 源代码生成器即可生成大概如下的代码
+以上代码会在编译期导出当前项目中标记了 `F1Attribute` 且继承自 `Base` 的所有非抽象类型，源生成器会自动补全该分部方法的实现：
 
 ```csharp
-    [global::System.CodeDom.Compiler.GeneratedCode("dotnetCampus.Telescope.SourceGeneratorAnalyzers", "1.0.0")]
-    internal partial class Program
+internal partial class Program
+{
+    private static partial global::System.Collections.Generic.IEnumerable<(global::System.Type type, global::Demo.F1Attribute attribute, global::System.Func<global::Demo.Base> creator)> ExportFooEnumerable()
     {
-        private static partial IEnumerable<(Type type, F1Attribute attribute, Func<Base> creator)> ExportFooEnumerable()
-        {
-            yield return (typeof(F2), new F1Attribute()
-            {
-                       
-            }, () => new F2());
-            yield return (typeof(F3), new F1Attribute()
-            {
-                       
-            }, () => new F3());
-        }
+        yield return (typeof(global::Demo.F2), new global::Demo.F1Attribute(), () => new global::Demo.F2());
+        yield return (typeof(global::Demo.F3), new global::Demo.F1Attribute(), () => new global::Demo.F3());
     }
+}
 ```
 
-高级用法：
+如果不限制特性，只需导出继承自 `Base` 的所有类型，可省略元组中的特性项：
 
-可以在 TelescopeExportAttribute 加上 IncludeReference 属性用来导出所有引用程序集的满足条件的类型，如以下代码
+```csharp
+[TelescopeExport]
+private static partial IEnumerable<(Type type, Func<Base> creator)> ExportAllSubTypes();
+```
+
+#### 扫描引用程序集
+
+在 `TelescopeExportAttribute` 上设置 `IncludeReferences = true` 可一并导出所有引用程序集中满足条件的类型：
 
 ```csharp
 internal partial class Program
 {
-    [dotnetCampus.Telescope.TelescopeExportAttribute(IncludeReference = true)]
+    [TelescopeExport(IncludeReferences = true)]
     private static partial IEnumerable<(Type type, F1Attribute attribute, Func<Base> creator)> ExportFooEnumerable();
 }
 ```
 
-仅推荐在入口程序集加上 `IncludeReference = true` 属性，因为一旦加入此属性，任何引用程序集的变更都可能导致源代码生成器重复执行，降低 VisualStudio 性能
+仅推荐在入口程序集启用 `IncludeReferences = true`，因为任何引用程序集的变更都会触发源生成器重新执行。
 
-#### 程序集标记
+### 2. 程序集特性式（`MarkExport` + `AttributedTypes`）
 
-这是传统的 Telescope 实现方法，在需要导出类型的项目里标记 `dotnetCampus.Telescope.MarkExportAttribute` 特性，如以下代码
-
-```csharp
-[assembly: dotnetCampus.Telescope.MarkExportAttribute(typeof(Base), typeof(FooAttribute))]
-```
-
-标记之后将会自动生成 `dotnetCampus.Telescope.__AttributedTypesExport__` 类型，即可在代码里面直接使用，如以下代码
+在需要导出类型的项目中添加程序集级 `[assembly: MarkExport(...)]` 特性：
 
 ```csharp
-        var attributedTypesExport = new __AttributedTypesExport__();
-        ICompileTimeAttributedTypesExporter<Base, FooAttribute> exporter = attributedTypesExport;
-        foreach (var exportedTypeMetadata in exporter.ExportAttributeTypes())
-        {
-            // 输出导出的类型
-            Console.WriteLine(exportedTypeMetadata.RealType.FullName);
-        }
+using DotNetCampus.Telescope;
+
+[assembly: MarkExport(typeof(Base), typeof(FooAttribute))]
 ```
 
-也可以使用 `dotnetCampus.Telescope.AttributedTypes` 辅助类获取所有导出类型
+源生成器会在编译期自动生成 `DotNetCampus.Telescope.__AttributedTypesExport__`，运行时可通过 `AttributedTypes.FromAssembly` 跨程序集读取：
+
+```csharp
+using DotNetCampus.Telescope;
+
+var exportedTypes = AttributedTypes.FromAssembly<Base, FooAttribute>(typeof(Program).Assembly);
+foreach (var metadata in exportedTypes)
+{
+    Console.WriteLine(metadata.RealType.FullName);
+    var instance = metadata.CreateInstance();
+}
+```
 
 ## 为此项目开发
 
-非常期望你能加入到 Telescope 的开发中来，请阅读 [如何为 Telescope 贡献代码](/docs/zh-hans/how-to-contribute.md) 了解开发相关的约定和技术要求。
+非常期望你能加入到 Telescope 的开发中来，请阅读 [如何为 Telescope 贡献代码](docs/zh-hans/how-to-contribute.md) 了解开发相关的约定和技术要求。

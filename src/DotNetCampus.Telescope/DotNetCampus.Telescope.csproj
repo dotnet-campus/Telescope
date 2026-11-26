@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- TargetFrameworks -->
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;netstandard2.0;net45</TargetFrameworks>
+  </PropertyGroup>
+
+  <!-- Project Information -->
+  <PropertyGroup>
+    <PackageId>DotNetCampus.Telescope</PackageId>
+    <RootNamespace>DotNetCampus.Telescope</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedAllSources Condition="'$(Configuration)' != 'Debug'">true</EmbedAllSources>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
+  </PropertyGroup>
+
+  <!-- GitHub Actions -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <!-- Package References -->
+  <ItemGroup>
+    <PackageReference Include="DotNetCampus.LatestCSharpFeatures" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
+    <!-- Visual Studio 2022+ 不再自带 .NET Framework 4.5 目标包，引入参考程序集以支持直接构建。 -->
+    <PackageReference Condition="'$(TargetFramework)' == 'net45'" Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- 确保打包前已构建分析器项目（PrivateAssets="all" 防止分析器项目出现在 nuspec 依赖中）。 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <ProjectReference Include="..\DotNetCampus.Telescope.Analyzer\DotNetCampus.Telescope.Analyzer.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- 生成 NuGet 包。 -->
+  <Target Name="_IncludeAllDependencies" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="\" />
+      <None Include="Package\buildTransitive\Package.props" Pack="true" PackagePath="buildTransitive\$(PackageId).props" />
+      <None Include="$(ArtifactsPath)bin\DotNetCampus.Telescope.Analyzer\$(Configuration.ToLowerInvariant())\DotNetCampus.Telescope.Analyzer.dll" Pack="true" PackagePath="analyzers\dotnet\cs" />
+    </ItemGroup>
+  </Target>
+
+</Project>
